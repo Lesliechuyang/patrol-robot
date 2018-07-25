@@ -38,6 +38,8 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   message_generation
   geometry_msgs
+  nav_msgs
+  tf
 )
 ##   * add "message_runtime" and every package in MSG_DEP_SET to
 ##     catkin_package(CATKIN_DEPENDS ...)
@@ -107,7 +109,10 @@ catkin_package(
   INCLUDE_DIRS include
   LIBRARIES trajectory
   CATKIN_DEPENDS
+    geometry_msgs
+    nav_msgs
     roscpp
+    tf
 #  DEPENDS system_lib
 )
 

@@ -8,15 +8,17 @@
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
+#include <tf/transform_listener.h>
 
 namespace patrol_robot{
 class PatrolRobot{
     public:
-        PatrolRobot();
+        PatrolRobot(tf::TransformListener& tf);
         ~PatrolRobot();
         bool receiveGoalsService(patrol_robot::SendGoals::Request  &req, patrol_robot::SendGoals::Response &res);
         void odomCB(const nav_msgs::Odometry::ConstPtr &odom);
     private:
+        tf::TransformListener& tf_;
         Trajectory* trajectory_planner;//路径规划器
         ros::ServiceServer receive_goals;//接受目标点服务
         ros::Publisher vel_pub;//速度发布

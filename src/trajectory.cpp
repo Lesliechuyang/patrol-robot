@@ -53,7 +53,10 @@ namespace patrol_robot{
         return sqrt(x*x + y*y);
     }
 
-    geometry_msgs::Quaternion Trajectory::getAngleDiff(geometry_msgs::Pose p1, geometry_msgs::Pose p2){
+    geometry_msgs::Quaternion Trajectory::getOrientation(geometry_msgs::Pose p1, geometry_msgs::Pose p2){
+        geometry_msgs::Vector3 vec;
+        vec.z = atan2(p2.position.y - p1.position.y, p2.position.x - p1.position.x);
+        return eulerToQuaterion(vec);
 
     }
 
@@ -73,9 +76,30 @@ namespace patrol_robot{
             traj_tmp.push_back(pose_tmp);
         }
         pose_tmp.position = end.position;
-        pose_tmp.orientation = getAngleDiff(end, end_n);//计算当前点和下个点的连线的角度，设为最后一个点的orientaiton
+        pose_tmp.orientation = getOrientation(end, end_n);//计算当前点和下个点的连线的角度，设为最后一个点的orientaiton
         traj_tmp.push_back(pose_tmp);
 
         return traj_tmp;
+    }
+
+    geometry_msgs::Vector3 Trajectory::quaternionToEuler(geometry_msgs::Quaternion q){
+        tf::Quaternion quat;
+        tf::quaternionMsgToTF(q, quat);
+
+        // the tf::Quaternion has a method to acess roll pitch and yaw
+        double roll, pitch, yaw;
+        tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
+
+        // the found angles are written in a geometry_msgs::Vector3
+        geometry_msgs::Vector3 rpy;
+        rpy.x = roll;
+        rpy.y = pitch;
+        rpy.z = yaw;
+
+        return rpy;
+    }
+
+    geometry_msgs::Quaternion Trajectory::eulerToQuaterion(geometry_msgs::Vector3 v){
+        return tf::createQuaternionMsgFromRollPitchYaw(v.x, v.y, v.z);
     }
 };

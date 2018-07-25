@@ -3,7 +3,8 @@
 #include <boost/thread.hpp>
 
 namespace patrol_robot{
-    PatrolRobot::PatrolRobot():
+    PatrolRobot::PatrolRobot(tf::TransformListener& tf):
+    tf_(tf),
     trajectory_planner(NULL),
     step_dis(0.01)
     {
