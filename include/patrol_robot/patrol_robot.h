@@ -26,7 +26,12 @@ class PatrolRobot{
         geometry_msgs::Pose current_pose;//当前姿态
         geometry_msgs::Twist current_twist;//当前速度
         std::vector< std::vector<geometry_msgs::Pose> > trajectory;//储存规划好的路径点
+        double vel_default;//默认前进速度，用于计算步长，默认0.1m/s
+        double controller_frequency;//控制频率,默认10hz
         double step_dis;//步长
+        double controller_patience_pose, controller_patience_theta;//位置和角度偏移容忍度
+        double Kx, Ky, Ktheta;//控制器参数
+        Controller* controller;//控制器对象
 };
 };
 

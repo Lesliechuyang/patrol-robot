@@ -11,6 +11,9 @@ namespace patrol_robot{
     }
 
     bool Trajectory::makePlan(geometry_msgs::Pose current_pose, std::vector<geometry_msgs::Pose> g, std::vector< std::vector<geometry_msgs::Pose> >& traj, double s){
+        //makePlan前清空容器
+        trajectory.clear();
+        goals.clear();
         //目标点向量为空，返回false
         if(!g.size()){
             ROS_INFO("Empty goals!");
@@ -19,11 +22,11 @@ namespace patrol_robot{
         goals = g;//目标点
         step_dis = s;//步长
         int num = goals.size();//目标点个数
+        //处理第一个目标点
+        traj.push_back(createTrajectory(current_pose, goals[0], current_pose));
+        trajectory.push_back(createTrajectory(current_pose, goals[0], current_pose));
         //如果只有一个点
         if(num == 1 ){
-            //处理第一个目标点
-            traj.push_back(createTrajectory(current_pose, goals[0], current_pose));
-            trajectory.push_back(createTrajectory(current_pose, goals[0], current_pose));
             if(traj.size() == 0 || traj[0].size() == 0) return false;
             return true;
         }
@@ -35,17 +38,21 @@ namespace patrol_robot{
                 if(traj.size() == 0 || traj[i].size() == 0) return false;
             }
             //对最后一个点进行处理
-            traj.push_back(createTrajectory(goals[num - 1], goals[num], goals[num - 1]));
-            trajectory.push_back(createTrajectory(goals[num - 1], goals[num], goals[num - 1]));
+            traj.push_back(createTrajectory(goals[num - 2], goals.back(), goals[num - 2]));
+            trajectory.push_back(createTrajectory(goals[num - 2], goals.back(), goals[num - 2]));
             if(traj.size() == 0 || traj[num].size() == 0) return false;
         }
         //生成完毕
     }
 
     bool Trajectory::getPositionAt(int index1, int index2, geometry_msgs::Pose& pose){
-        //判断是否超出长度
-        if( (index1 > trajectory.size()) || (index2 > trajectory[index1].size()) )  return false;
-        pose = trajectory[index1][index2];
+        if( index1 >= trajectory.size() )  return false;//如果轨迹标识大于总轨技数
+        if( index2 < trajectory[index1].size() ){//判断index2是否超过当前轨迹的总点数
+            pose = trajectory[index1][index2];
+        }
+        else{
+            pose = trajectory[index1][trajectory[index1].size() - 1];//返回最后的目标点
+        }
         return true;
     }
 
@@ -101,5 +108,49 @@ namespace patrol_robot{
 
     geometry_msgs::Quaternion Trajectory::eulerToQuaterion(geometry_msgs::Vector3 v){
         return tf::createQuaternionMsgFromRollPitchYaw(v.x, v.y, v.z);
+    }
+
+    int Trajectory::getSteps(int index){
+        return trajectory[index].size();
+    }
+
+    bool Trajectory::goalReached(int traj_index, geometry_msgs::Pose current_pose, double pos_tolerance){
+        double current_pose_x = current_pose.position.x;
+        double current_pose_y = current_pose.position.y;
+        double goal_pose_x = trajectory[traj_index].back().position.x;
+        double goal_pose_y = trajectory[traj_index].back().position.y;
+        if( pow(current_pose_x - goal_pose_x, 2) + pow(current_pose_y - goal_pose_y, 2) < pow(pos_tolerance, 2) ){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    bool Trajectory::OrientationReached(int traj_index, geometry_msgs::Pose current_pose, double pos_tolerance, double &angle_diff){
+        double current_yaw = quaternionToEuler(current_pose.orientation).z;
+        double goal_yaw = quaternionToEuler(trajectory[traj_index].back().orientation).z;
+        angle_diff = angleDiff(current_yaw, goal_yaw);
+        if(abs(angle_diff) < pos_tolerance) return true;
+        else return false;
+    }
+
+    double Trajectory::normalize(double z){
+        return atan2(sin(z),cos(z));
+    }
+
+    double Trajectory::angleDiff(double a, double b)
+    {
+        double d1, d2;
+        a = normalize(a);
+        b = normalize(b);
+        d1 = a-b;
+        d2 = 2*M_PI - fabs(d1);
+        if(d1 > 0)
+            d2 *= -1.0;
+        if(fabs(d1) < fabs(d2))
+            return(d1);
+        else
+            return(d2);
     }
 };

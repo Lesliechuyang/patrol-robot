@@ -241,3 +241,11 @@ add_dependencies(controller ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTE
 target_link_libraries(controller
   ${catkin_LIBRARIES}
 )
+
+add_executable(patrol_robot_client
+  src/patrol_robot_client.cpp
+)
+add_dependencies(patrol_robot_client ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(patrol_robot_client
+  ${catkin_LIBRARIES}
+)
