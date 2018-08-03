@@ -216,12 +216,21 @@ target_link_libraries(trajectory
   ${catkin_LIBRARIES}
 )
 
+add_library(controller
+  src/controller.cpp
+  include/patrol_robot/controller.h
+)
+add_dependencies(controller ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(controller trajectory
+  ${catkin_LIBRARIES}
+)
+
 add_library(patrol_robot
   src/patrol_robot.cpp
   include/patrol_robot/patrol_robot.h
 )
 add_dependencies(patrol_robot ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(patrol_robot
+target_link_libraries(patrol_robot trajectory controller
   ${catkin_LIBRARIES}
 )
 
@@ -229,18 +238,18 @@ add_executable(patrol_robot_node
   src/patrol_robot_node.cpp
 )
 add_dependencies(patrol_robot_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(patrol_robot_node
+target_link_libraries(patrol_robot_node trajectory controller patrol_robot
   ${catkin_LIBRARIES}
 )
 
-add_library(controller
-  src/controller.cpp
-  include/patrol_robot/controller.h
-)
-add_dependencies(controller ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(controller
-  ${catkin_LIBRARIES}
-)
+# add_executable(patrol_robot
+#   src/patrol_robot.cpp
+#   include/patrol_robot/patrol_robot.h
+# )
+# add_dependencies(patrol_robot ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# target_link_libraries(patrol_robot trajectory controller
+#   ${catkin_LIBRARIES}
+# )
 
 add_executable(patrol_robot_client
   src/patrol_robot_client.cpp

@@ -19,18 +19,27 @@ namespace patrol_robot{
             ROS_INFO("Empty goals!");
             return false;
         }
+
         goals = g;//目标点
         step_dis = s;//步长
         int num = goals.size();//目标点个数
-        //处理第一个目标点
-        traj.push_back(createTrajectory(current_pose, goals[0], current_pose));
-        trajectory.push_back(createTrajectory(current_pose, goals[0], current_pose));
-        //如果只有一个点
-        if(num == 1 ){
+        int one_point = 0;//是否单个目标点
+        if(num == 1)    one_point = 1;
+        //如果单个点
+        if(one_point){
+            //处理第一个目标点
+            traj.push_back(createTrajectory(current_pose, goals[0], current_pose));
+            trajectory.push_back(createTrajectory(current_pose, goals[0], current_pose));
             if(traj.size() == 0 || traj[0].size() == 0) return false;
+            int t_s = trajectory.size();
+            printf("1 trajectory needs to be generated, %d have been done!\n", t_s);
             return true;
         }
         else{
+            //多点情况
+            //处理第一个目标点
+            traj.push_back(createTrajectory(current_pose, goals[0], goals[1]));
+            trajectory.push_back(createTrajectory(current_pose, goals[0], goals[1]));
             //对剩余每个目标点进行规划,除了最后一个点
             for(int i = 1; i < (num - 1); ++i){
                 traj.push_back(createTrajectory(goals[i-1], goals[i], goals[i+1]));
@@ -41,8 +50,21 @@ namespace patrol_robot{
             traj.push_back(createTrajectory(goals[num - 2], goals.back(), goals[num - 2]));
             trajectory.push_back(createTrajectory(goals[num - 2], goals.back(), goals[num - 2]));
             if(traj.size() == 0 || traj[num].size() == 0) return false;
+            //打印
+            int t_s = trajectory.size();
+            printf("%d trajectories need to be generated, %d have been done!\n", num, t_s);
+            // int tra_size = trajectory.size();
+            // printf("size of trajectory = %d\n", tra_size);
+            //输出轨迹
+            // for(int i = 0; i < trajectory.size(); i++){
+            //     for(int j = 0; j < trajectory[i].size(); j++){
+            //         printf("x = %f, y = %f, theta = %f \n", trajectory[i][j].position.x, trajectory[i][j].position.y, quaternionToEuler(trajectory[i][j].orientation).z);
+            //     }
+            // }
+            return true;
+            //生成完毕
         }
-        //生成完毕
+        return false;
     }
 
     bool Trajectory::getPositionAt(int index1, int index2, geometry_msgs::Pose& pose){
@@ -78,8 +100,8 @@ namespace patrol_robot{
         int steps = calDistance(delta_x, delta_y) / step_dis;//总步数
         //计算一个路径上的每个点
         for(int i = 0; i < steps; ++i){
-            pose_tmp.position.x = x_0 + i * step_dis;
-            pose_tmp.position.y = y_0 + i * step_dis;
+            pose_tmp.position.x = x_0 + i * delta_x / steps;
+            pose_tmp.position.y = y_0 + i * delta_y / steps;
             traj_tmp.push_back(pose_tmp);
         }
         pose_tmp.position = end.position;
@@ -90,6 +112,7 @@ namespace patrol_robot{
     }
 
     geometry_msgs::Vector3 Trajectory::quaternionToEuler(geometry_msgs::Quaternion q){
+        //printf("quaternion x = %f, y = %f, z = %f, w = %f\n", q.x, q.y, q.z, q.w);
         tf::Quaternion quat;
         tf::quaternionMsgToTF(q, quat);
 
@@ -110,15 +133,21 @@ namespace patrol_robot{
         return tf::createQuaternionMsgFromRollPitchYaw(v.x, v.y, v.z);
     }
 
+    //获取该条路径的所有点数
     int Trajectory::getSteps(int index){
         return trajectory[index].size();
     }
 
     bool Trajectory::goalReached(int traj_index, geometry_msgs::Pose current_pose, double pos_tolerance){
+        
         double current_pose_x = current_pose.position.x;
         double current_pose_y = current_pose.position.y;
         double goal_pose_x = trajectory[traj_index].back().position.x;
+        // for(int i = 0; i < trajectory[traj_index].size(); i++){
+        //     printf("x = %f, y = %f\n", trajectory[traj_index][i].position.x, trajectory[traj_index][i].position.y);
+        // }
         double goal_pose_y = trajectory[traj_index].back().position.y;
+        // printf("delta = %f\n", pow(current_pose_x - goal_pose_x, 2) + pow(current_pose_y - goal_pose_y, 2));
         if( pow(current_pose_x - goal_pose_x, 2) + pow(current_pose_y - goal_pose_y, 2) < pow(pos_tolerance, 2) ){
             return true;
         }
@@ -131,6 +160,7 @@ namespace patrol_robot{
         double current_yaw = quaternionToEuler(current_pose.orientation).z;
         double goal_yaw = quaternionToEuler(trajectory[traj_index].back().orientation).z;
         angle_diff = angleDiff(current_yaw, goal_yaw);
+        printf("angle_diff = %f\n", angle_diff);
         if(abs(angle_diff) < pos_tolerance) return true;
         else return false;
     }

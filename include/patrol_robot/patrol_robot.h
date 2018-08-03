@@ -32,6 +32,7 @@ class PatrolRobot{
         double controller_patience_pose, controller_patience_theta;//位置和角度偏移容忍度
         double Kx, Ky, Ktheta;//控制器参数
         Controller* controller;//控制器对象
+        int timeout;//等待超时设置
 };
 };
 

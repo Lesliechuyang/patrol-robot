@@ -25,7 +25,7 @@ class Controller{
         bool computeOrientationControlActions(geometry_msgs::Twist& twist, double angle_diff);//角度控制
     private:
         Trajectory* traj_;
-        double controller_frequency;//控制频率
+        double controller_frequency_;//控制频率
         double controller_patience_pose_, controller_patience_theta_;//误差容忍度
         double Kx_, Ky_, Ktheta_;//控制参数
         

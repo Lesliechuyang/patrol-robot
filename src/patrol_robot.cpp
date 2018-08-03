@@ -11,7 +11,8 @@ namespace patrol_robot{
     controller_patience_pose(0.05),
     controller_patience_theta(0.15),
     Kx(0.9), Ky(0.9), Ktheta(0.9),
-    controller(NULL)
+    controller(NULL),
+    timeout(50)  //50个循环，每个循环0.1s，5s等待
     {
         ros::NodeHandle nh;
         trajectory_planner = new Trajectory();//路径规划器对象
@@ -19,9 +20,16 @@ namespace patrol_robot{
         vel_pub = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1);
         odom_sub = nh.subscribe<nav_msgs::Odometry>("odom", 1, boost::bind(&PatrolRobot::odomCB, this, _1));
         //用于接受服务消息
-        receive_goals = nh.advertiseService("abc", &PatrolRobot::receiveGoalsService, this);
-
+        receive_goals = nh.advertiseService("send_goals", &PatrolRobot::receiveGoalsService, this);
+        //初始化初始位置
+        current_pose.position.x = 0;
+        current_pose.position.y = 0;
+        current_pose.orientation.x = 0;
+        current_pose.orientation.y = 0;
+        current_pose.orientation.z = 0;
+        current_pose.orientation.w = 1;
         step_dis = vel_default / controller_frequency;//计算步长，默认速度/控制频率
+        printf("hello\n");
     }
 
     PatrolRobot::~PatrolRobot(){
@@ -32,51 +40,80 @@ namespace patrol_robot{
     bool PatrolRobot::receiveGoalsService(patrol_robot::SendGoals::Request  &req,
          patrol_robot::SendGoals::Response &res){
 
-        int success = 0;
         unsigned int num = req.goals.poses.size();
         std::vector<geometry_msgs::Pose> goals_nav;
-        goals_nav.resize(num);
         for(unsigned int i = 0; i < num; ++i){
             goals_nav.push_back(req.goals.poses[i]);
-            ROS_INFO("Reveive goals");  
+            ROS_INFO("Receive goals");  
         }
-
+        printf("The number of goals is %d\n", num);
         //规划路径
-        if(!trajectory_planner->makePlan(current_pose, goals_nav, trajectory, step_dis))
+        if(!trajectory_planner->makePlan(current_pose, goals_nav, trajectory, step_dis)){
             ROS_INFO("Trajectory planner failed to plan!\n");
-
+            return false;
+        }
+            
+        int defeat = 0;//失败次数
         //控制器
         for(int i = 0; i < num; ++i){
-            int point_index = trajectory_planner->getSteps(i);//获取第i条路径的点数
-            int j = 0;
+            int point_num = trajectory_planner->getSteps(i);//获取第i条路径的路径点数
+            printf("%dth control loop, full loops are %d\n", i, num);
+            int j = 0;//当前路径的第j次循环
             geometry_msgs::Twist twist;//存放规划的速度
             ros::Rate r(controller_frequency);//控制频率
+            printf("begin position control!\n");
             //当还没到达位置目标点，循环执行
             while(!trajectory_planner->goalReached(i, current_pose, controller_patience_pose)){
                 if(controller->computePositionControlActions(current_pose, twist, i, j)){
                     vel_pub.publish(twist);
                     j += 1;
+                    printf("j = %d\n", j);
                 }
                 else{
                     ROS_INFO("Position control failed!\n");
                 }
-                r.sleep();
-            }
-            //角度控制
-            double angle_diff;//角度差
-            while(!trajectory_planner->OrientationReached(i, current_pose, controller_patience_theta, angle_diff)){
-                if(controller->computeOrientationControlActions(twist, angle_diff)){
-                    vel_pub.publish(twist);
+                //检查等待超时
+                if(j > point_num + timeout){
+                    defeat++;
+                    printf("position control failed\n");
+                    break;//退出当前while循环
+                }else{
+                    r.sleep();
                 }
-                else{
-                    ROS_INFO("Orientation control failed!\n");
-                }
-                r.sleep();
             }
-            success++;//执行完一次累加
+            
+            if(trajectory_planner->goalReached(i, current_pose, controller_patience_pose)){
+                printf("position control successfully, begin orientation control!\n");
+                //角度控制
+                double angle_diff;//角度差
+                int run_time = 0;//运行次数
+                while(!trajectory_planner->OrientationReached(i, current_pose, controller_patience_theta, angle_diff)){
+                    if(controller->computeOrientationControlActions(twist, angle_diff)){
+                        vel_pub.publish(twist);
+                        printf("v = %f, w = %f\n", twist.linear.x, twist.angular.z);
+                    }
+                    else{
+                        ROS_INFO("Orientation control failed!\n");
+                    }
+                    //检查等待超时
+                    if(run_time > timeout){
+                        defeat++;
+                        printf("orientation control failed\n");
+                        printf("the %dth trajectory can't reached\n", i+1);
+                        break;//退出当前while循环
+                    }else{
+                        run_time++;
+                        r.sleep();
+                    }
+                }
+            }
+            else{
+                printf("the %dth trajectory can't reached\n", i+1);
+            }
+            
         }
 
-        if(success == num)  
+        if(!defeat)  
         {
             ROS_INFO("Hooray, service successful!");  
             res.success = true;
@@ -86,7 +123,7 @@ namespace patrol_robot{
         else
         {
             res.success = false;
-            ROS_INFO("%d points success, %d points failed!", success, num - success);  
+            ROS_INFO("%d points success, %d points failed!", num - defeat, defeat);  
             return true;
         }
 
@@ -98,3 +135,13 @@ namespace patrol_robot{
         current_twist = odom->twist.twist;
     }
 };
+
+// int main(int argc, char** argv){
+//     ros::init(argc, argv, "patrol_robot_node");
+//     tf::TransformListener tf(ros::Duration(10));
+//     patrol_robot::PatrolRobot patrol_robot( tf );
+
+//     ros::spin( );
+    
+//     return 0;
+// }
