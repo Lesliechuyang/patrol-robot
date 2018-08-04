@@ -24,7 +24,7 @@ namespace patrol_robot{
         x_n = current_pose.position.x;
         y_n = current_pose.position.y;
         theta_n = traj_->quaternionToEuler(current_pose.orientation).z;
-        //printf("current x = %f, y = %f, theta = %f\n", x_n, y_n,theta_n);
+        printf("current x = %f, y = %f, theta = %f\n", x_n, y_n,theta_n);
         return true;
     }
 
@@ -104,7 +104,7 @@ namespace patrol_robot{
             w_c_n = computeW_c_n();
             twist.linear.x = v_c_n;
             twist.angular.z = w_c_n;
-            //printf("linear.x = %f，angular.z = %f\n", twist.linear.x, twist.angular.z);
+            printf("linear.x = %f，angular.z = %f\n", twist.linear.x, twist.angular.z);
             return true;
         }
         else{
@@ -116,7 +116,7 @@ namespace patrol_robot{
     bool Controller::computeOrientationControlActions(geometry_msgs::Twist& twist, double angle_diff){
         twist.linear.x = 0;
         twist.linear.y = 0;
-        twist.angular.z = -0.5 * angle_diff;
+        twist.angular.z = -0.3 * angle_diff;
         return true;
     }
 };

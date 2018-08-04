@@ -17,6 +17,7 @@ class PatrolRobot{
         ~PatrolRobot();
         bool receiveGoalsService(patrol_robot::SendGoals::Request  &req, patrol_robot::SendGoals::Response &res);
         void odomCB(const nav_msgs::Odometry::ConstPtr &odom);
+        geometry_msgs::Pose getCurrentPose();//获取当前位子
     private:
         tf::TransformListener& tf_;
         Trajectory* trajectory_planner;//路径规划器

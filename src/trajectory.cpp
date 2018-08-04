@@ -40,6 +40,7 @@ namespace patrol_robot{
             //处理第一个目标点
             traj.push_back(createTrajectory(current_pose, goals[0], goals[1]));
             trajectory.push_back(createTrajectory(current_pose, goals[0], goals[1]));
+            if(traj.size() == 0 || traj[0].size() == 0) return false;
             //对剩余每个目标点进行规划,除了最后一个点
             for(int i = 1; i < (num - 1); ++i){
                 traj.push_back(createTrajectory(goals[i-1], goals[i], goals[i+1]));
@@ -49,18 +50,18 @@ namespace patrol_robot{
             //对最后一个点进行处理
             traj.push_back(createTrajectory(goals[num - 2], goals.back(), goals[num - 2]));
             trajectory.push_back(createTrajectory(goals[num - 2], goals.back(), goals[num - 2]));
-            if(traj.size() == 0 || traj[num].size() == 0) return false;
+            if(traj.size() == 0 || traj[num-1].size() == 0) return false;
             //打印
             int t_s = trajectory.size();
             printf("%d trajectories need to be generated, %d have been done!\n", num, t_s);
             // int tra_size = trajectory.size();
             // printf("size of trajectory = %d\n", tra_size);
             //输出轨迹
-            // for(int i = 0; i < trajectory.size(); i++){
-            //     for(int j = 0; j < trajectory[i].size(); j++){
-            //         printf("x = %f, y = %f, theta = %f \n", trajectory[i][j].position.x, trajectory[i][j].position.y, quaternionToEuler(trajectory[i][j].orientation).z);
-            //     }
-            // }
+            for(int i = 0; i < trajectory.size(); i++){
+                for(int j = 0; j < trajectory[i].size(); j++){
+                    printf("x = %f, y = %f, theta = %f \n", trajectory[i][j].position.x, trajectory[i][j].position.y, quaternionToEuler(trajectory[i][j].orientation).z);
+                }
+            }
             return true;
             //生成完毕
         }
@@ -102,6 +103,7 @@ namespace patrol_robot{
         for(int i = 0; i < steps; ++i){
             pose_tmp.position.x = x_0 + i * delta_x / steps;
             pose_tmp.position.y = y_0 + i * delta_y / steps;
+            pose_tmp.orientation.w = 1;
             traj_tmp.push_back(pose_tmp);
         }
         pose_tmp.position = end.position;

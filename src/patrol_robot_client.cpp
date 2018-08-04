@@ -32,7 +32,7 @@ int main(int argc, char **argv)
   goal.orientation.w = 0;
   goals_nav.push_back(goal);
 
-  goal.position.x = 0;
+  goal.position.x = 0.5;
   goal.position.y = -1;
   goal.position.z = 0;
   goal.orientation.x = 0;
@@ -41,7 +41,7 @@ int main(int argc, char **argv)
   goal.orientation.w = 0.7;
   goals_nav.push_back(goal);
 
-  goal.position.x = 0;
+  goal.position.x = 0.5;
   goal.position.y = 1;
   goal.position.z = 0;
   goal.orientation.x = 0;

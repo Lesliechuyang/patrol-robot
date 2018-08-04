@@ -1,6 +1,9 @@
 #include <patrol_robot/patrol_robot.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/thread.hpp>
+#include <unistd.h>
+#include <patrol_robot/ElevatorAndCamera.h>
+
 
 namespace patrol_robot{
     PatrolRobot::PatrolRobot(tf::TransformListener& tf):
@@ -9,10 +12,10 @@ namespace patrol_robot{
     controller_frequency(10),
     vel_default(0.1),
     controller_patience_pose(0.05),
-    controller_patience_theta(0.15),
+    controller_patience_theta(0.05),
     Kx(0.9), Ky(0.9), Ktheta(0.9),
     controller(NULL),
-    timeout(50)  //50个循环，每个循环0.1s，5s等待
+    timeout(300)  //50个循环，每个循环0.1s，5s等待
     {
         ros::NodeHandle nh;
         trajectory_planner = new Trajectory();//路径规划器对象
@@ -60,14 +63,19 @@ namespace patrol_robot{
             printf("%dth control loop, full loops are %d\n", i, num);
             int j = 0;//当前路径的第j次循环
             geometry_msgs::Twist twist;//存放规划的速度
+            geometry_msgs::Pose c_pose; //当前位资
             ros::Rate r(controller_frequency);//控制频率
             printf("begin position control!\n");
             //当还没到达位置目标点，循环执行
-            while(!trajectory_planner->goalReached(i, current_pose, controller_patience_pose)){
-                if(controller->computePositionControlActions(current_pose, twist, i, j)){
+            do{
+                ros::spinOnce();//spinonce去获取odom的回调函数，否则current pose不会变化
+                c_pose = getCurrentPose();
+                if(controller->computePositionControlActions(c_pose, twist, i, j)){
+                    //printf("current_pose %f, %f, %f, %f\n", current_pose.position.x, current_pose.position.y, current_pose.orientation.z, current_pose.orientation.w); 
+                    //printf("c_pose %f, %f, %f, %f\n", c_pose.position.x, c_pose.position.y, c_pose.orientation.z, c_pose.orientation.w);                                                           
                     vel_pub.publish(twist);
                     j += 1;
-                    printf("j = %d\n", j);
+                    //printf("j = %d\n", j);
                 }
                 else{
                     ROS_INFO("Position control failed!\n");
@@ -80,14 +88,17 @@ namespace patrol_robot{
                 }else{
                     r.sleep();
                 }
-            }
+            }while(!trajectory_planner->goalReached(i, current_pose, controller_patience_pose));
             
+            ///////////////////////////
             if(trajectory_planner->goalReached(i, current_pose, controller_patience_pose)){
                 printf("position control successfully, begin orientation control!\n");
                 //角度控制
                 double angle_diff;//角度差
                 int run_time = 0;//运行次数
-                while(!trajectory_planner->OrientationReached(i, current_pose, controller_patience_theta, angle_diff)){
+                do{
+                    ros::spinOnce();
+                    c_pose = getCurrentPose();
                     if(controller->computeOrientationControlActions(twist, angle_diff)){
                         vel_pub.publish(twist);
                         printf("v = %f, w = %f\n", twist.linear.x, twist.angular.z);
@@ -105,12 +116,17 @@ namespace patrol_robot{
                         run_time++;
                         r.sleep();
                     }
-                }
+                }while(!trajectory_planner->OrientationReached(i, current_pose, controller_patience_theta, angle_diff));
             }
             else{
                 printf("the %dth trajectory can't reached\n", i+1);
             }
-            
+
+            sleep(1);
+            ElevatorTest();
+            sleep(1);
+            CameraTest("5");
+            sleep(5);
         }
 
         if(!defeat)  
@@ -132,7 +148,13 @@ namespace patrol_robot{
 
     void PatrolRobot::odomCB(const nav_msgs::Odometry::ConstPtr &odom){
         current_pose = odom->pose.pose;
+        //printf("%f, %f, %f, %f\n", current_pose.position.x, current_pose.position.y, current_pose.orientation.z, current_pose.orientation.w);
+
         current_twist = odom->twist.twist;
+    }
+
+    geometry_msgs::Pose PatrolRobot::getCurrentPose(){
+        return current_pose;
     }
 };
 

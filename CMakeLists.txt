@@ -234,11 +234,20 @@ target_link_libraries(patrol_robot trajectory controller
   ${catkin_LIBRARIES}
 )
 
+add_library(ElevatorAndCamera
+  src/ElevatorAndCamera.cpp
+  include/patrol_robot/ElevatorAndCamera.h
+)
+add_dependencies(ElevatorAndCamera ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(ElevatorAndCamera
+  ${catkin_LIBRARIES}
+)
+
 add_executable(patrol_robot_node
   src/patrol_robot_node.cpp
 )
 add_dependencies(patrol_robot_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(patrol_robot_node trajectory controller patrol_robot
+target_link_libraries(patrol_robot_node trajectory controller patrol_robot ElevatorAndCamera
   ${catkin_LIBRARIES}
 )
 
