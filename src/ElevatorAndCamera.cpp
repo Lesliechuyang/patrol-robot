@@ -424,14 +424,15 @@ int GotoSetPosition(int SetHeight)
 void ElevatorInitial(void)
 {
   com_initial();
-  delay_ms(50);
+  delay_ms(150);
   ElevatorGoUpStop();
-  delay_ms(100);
+  delay_ms(150);
   ElevatorGoDownStop();
-  delay_ms(50);
+  delay_ms(150);
   
   printf("ElevatorInitial,接下来下降\r\n");
   ElevatorGoDown(LFIT_TIME);
+  delay_ms(150);
   printf("ElevatorInitial,下降结束\r\n");
   
 }
@@ -439,18 +440,23 @@ void ElevatorInitial(void)
 
 int ElevatorTest(void)
 {
-  ElevatorInitial();
+  //ElevatorInitial();
   UART_Recv_And_Disp_Data();
 /*
   printf("ElevatorTest,接下来下降\r\n");
   ElevatorGoDown(LFIT_TIME/4);
   printf("ElevatorTest,下降结束\r\n");
 */
-  delay_ms(50);
+  delay_ms(150);
 
   printf("ElevatorTest,接下来上升20\r\n");
   GotoSetPosition(20);
   printf("ElevatorTest,上升结束\r\n");
+
+  printf("ElevatorTest,接下来下降20\r\n");
+ // GotoSetPosition(20);
+ ElevatorGoDown(LFIT_TIME/2);
+  printf("ElevatorTest,下降结束\r\n");
   return 0;
 }
 //***************************************************************************//

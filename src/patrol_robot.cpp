@@ -32,6 +32,7 @@ namespace patrol_robot{
         current_pose.orientation.z = 0;
         current_pose.orientation.w = 1;
         step_dis = vel_default / controller_frequency;//计算步长，默认速度/控制频率
+        ElevatorInitial(); //初始化升降秆和摄像头
         printf("hello\n");
     }
 
