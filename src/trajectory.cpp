@@ -57,11 +57,11 @@ namespace patrol_robot{
             // int tra_size = trajectory.size();
             // printf("size of trajectory = %d\n", tra_size);
             //输出轨迹
-            for(int i = 0; i < trajectory.size(); i++){
-                for(int j = 0; j < trajectory[i].size(); j++){
-                    printf("x = %f, y = %f, theta = %f \n", trajectory[i][j].position.x, trajectory[i][j].position.y, quaternionToEuler(trajectory[i][j].orientation).z);
-                }
-            }
+            // for(int i = 0; i < trajectory.size(); i++){
+            //     for(int j = 0; j < trajectory[i].size(); j++){
+            //         printf("x = %f, y = %f, theta = %f \n", trajectory[i][j].position.x, trajectory[i][j].position.y, quaternionToEuler(trajectory[i][j].orientation).z);
+            //     }
+            // }
             return true;
             //生成完毕
         }
@@ -158,12 +158,12 @@ namespace patrol_robot{
         }
     }
 
-    bool Trajectory::OrientationReached(int traj_index, geometry_msgs::Pose current_pose, double pos_tolerance, double &angle_diff){
+    bool Trajectory::OrientationReached(int traj_index, geometry_msgs::Pose current_pose, double theta_tolerance, double &angle_diff){
         double current_yaw = quaternionToEuler(current_pose.orientation).z;
         double goal_yaw = quaternionToEuler(trajectory[traj_index].back().orientation).z;
         angle_diff = angleDiff(current_yaw, goal_yaw);
-        printf("angle_diff = %f\n", angle_diff);
-        if(abs(angle_diff) < pos_tolerance) return true;
+        printf("angle_diff = %f, theta_tolerance = %f\n", angle_diff, theta_tolerance);
+        if(fabs(angle_diff) < theta_tolerance) return true;
         else return false;
     }
 

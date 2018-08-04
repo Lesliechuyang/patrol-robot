@@ -1,7 +1,19 @@
 #include <patrol_robot/ElevatorAndCamera.h>
 
+//#include"ElevatorAndCamera.h"
+
 static unsigned char UART_rcv_buf[1024]; 
 int fd; 
+
+void delay_sec(unsigned int n)
+{
+	sleep(n);
+}
+
+void delay_4ms(unsigned int n)
+{			//delay()函数，原型为extern void delay(unsigned int msec);它可以延时msec*4毫秒
+   // msleep
+}
 
 void delay_ms(int nms) 
 {
@@ -170,6 +182,16 @@ int UART_Set(int fd,int speed,int flow_ctrl,int databits,int stopbits,int parity
         }  
         return (TRUE);   
 }  
+void  FlushCOMBuf(char WhichBuf=0)
+{
+	switch (WhichBuf)
+	{
+		case (0):tcflush(fd,TCIFLUSH); break;
+		case (1):tcflush(fd,TCOFLUSH); break;
+		case (2):tcflush(fd,TCIOFLUSH); break;
+		default:break;
+	}
+}
 int UART_Init(int fd, int speed,int flow_ctrl,int databits,int stopbits,int parity)  
 {  
         int err;  
@@ -231,17 +253,17 @@ int UART_Send(unsigned char *send_buf,int data_len)
 void UART_Recv_And_Disp_Data(void)
 {
          int len; 
-	 len = UART_Recv( UART_rcv_buf,50);  
+		 len = UART_Recv( UART_rcv_buf,50);  
          if(len > 0)  
          {  
            UART_rcv_buf[len] = '\0';
-	   printf("\r\nreceive %d data:\r\n",len);   
+	       printf("\r\nreceive %d data:\r\n",len);   
 
-	   for(short i=0;i<len;i++)
-	   {
-		   printf("%#02X ",UART_rcv_buf[i]);
-	    }
-	    printf("\r\n\r\n");
+		   for(short i=0;i<len;i++)
+		   {
+			   printf("%#02X ",UART_rcv_buf[i]);
+			}
+			printf("\r\n\r\n");
          }  
          else  
          {  
@@ -309,7 +331,8 @@ int ElevatorGoUp(int ms=0)
       return 3;
     }
     current_operation= GO_UP_START;
-    delay_ms(ms);
+    //delay_ms(ms);
+	  delay_sec(ms);  //delay_4ms(ms/4);
     Res=UART_Send(CommandGoUpStop,COMMAND_LEN);
     if(Res!=COMMAND_LEN){
       return 4;
@@ -350,7 +373,9 @@ int ElevatorGoDown(int ms=0)
       return 3;
     }
     current_operation= GO_DOWN_START;
-    delay_ms(ms);
+    //delay_ms(ms);
+	  //delay_4ms(ms/4);
+    delay_sec(ms);
     Res=UART_Send(CommandGoDownStop,COMMAND_LEN);
     if(Res!=COMMAND_LEN){
       printf("ElevatorGoDown,UART_Send(CommandGoDownStop,COMMAND_LEN); ERROR\r\n");
@@ -424,39 +449,41 @@ int GotoSetPosition(int SetHeight)
 void ElevatorInitial(void)
 {
   com_initial();
-  delay_ms(150);
+  delay_ms(200);
   ElevatorGoUpStop();
-  delay_ms(150);
+  delay_ms(200);
   ElevatorGoDownStop();
-  delay_ms(150);
+  delay_ms(200);
   
   printf("ElevatorInitial,接下来下降\r\n");
   ElevatorGoDown(LFIT_TIME);
-  delay_ms(150);
+  delay_ms(200);
   printf("ElevatorInitial,下降结束\r\n");
   
+  FlushCOMBuf();
 }
 
 
 int ElevatorTest(void)
 {
   //ElevatorInitial();
-  UART_Recv_And_Disp_Data();
-/*
-  printf("ElevatorTest,接下来下降\r\n");
-  ElevatorGoDown(LFIT_TIME/4);
-  printf("ElevatorTest,下降结束\r\n");
-*/
-  delay_ms(150);
 
   printf("ElevatorTest,接下来上升20\r\n");
-  GotoSetPosition(20);
+				//GotoSetPosition(20);
+				//delay_ms(200);
+  ElevatorGoUp((float)20.0/MAX_LIFT*LFIT_TIME);
+  delay_ms(250);	
   printf("ElevatorTest,上升结束\r\n");
+  
+CameraTest(0);
 
   printf("ElevatorTest,接下来下降20\r\n");
- // GotoSetPosition(20);
- ElevatorGoDown(LFIT_TIME/2);
+						//GotoSetPosition(0);
+  ElevatorGoDown((float)20.0/MAX_LIFT*LFIT_TIME);
+  delay_ms(250);
   printf("ElevatorTest,下降结束\r\n");
+  
+  FlushCOMBuf();
   return 0;
 }
 //***************************************************************************//
@@ -479,16 +506,18 @@ int CameraTest(char *argv)
 {
   unsigned short times=1;
 
-  printf("Camera,App Start\r\n\r\n");
+ // printf("Camera,App Start\r\n\r\n");
   
-    printf("参数：%s\r\n\r\n",argv);
-    times=atoi(argv);
-    printf("times==%d\r\n",times);
+//   printf("参数：%s\r\n\r\n",argv);
+//   times=atoi(argv);
+ //   printf("times==%d\r\n",times);
 
-  //GoSteps( e_Right,times);
+  GoSteps( e_Left,5);
 
-  GoSteps( e_Left,times);
+ GoSteps( e_Up,3);
+ GoSteps( e_Down,3);
 
+  GoSteps( e_Right,5);
   return 0;
 }
 
@@ -505,4 +534,3 @@ int main(void)
   return 0;
 }
 */
-

@@ -10,7 +10,7 @@ namespace patrol_robot{
     tf_(tf),
     trajectory_planner(NULL),
     controller_frequency(10),
-    vel_default(0.1),
+    vel_default(0.2),
     controller_patience_pose(0.05),
     controller_patience_theta(0.05),
     Kx(0.9), Ky(0.9), Ktheta(0.9),
@@ -70,8 +70,8 @@ namespace patrol_robot{
             //当还没到达位置目标点，循环执行
             do{
                 ros::spinOnce();//spinonce去获取odom的回调函数，否则current pose不会变化
-                c_pose = getCurrentPose();
-                if(controller->computePositionControlActions(c_pose, twist, i, j)){
+                //c_pose = getCurrentPose();
+                if(controller->computePositionControlActions(current_pose, twist, i, j)){
                     //printf("current_pose %f, %f, %f, %f\n", current_pose.position.x, current_pose.position.y, current_pose.orientation.z, current_pose.orientation.w); 
                     //printf("c_pose %f, %f, %f, %f\n", c_pose.position.x, c_pose.position.y, c_pose.orientation.z, c_pose.orientation.w);                                                           
                     vel_pub.publish(twist);
@@ -99,7 +99,7 @@ namespace patrol_robot{
                 int run_time = 0;//运行次数
                 do{
                     ros::spinOnce();
-                    c_pose = getCurrentPose();
+                    //c_pose = getCurrentPose();
                     if(controller->computeOrientationControlActions(twist, angle_diff)){
                         vel_pub.publish(twist);
                         printf("v = %f, w = %f\n", twist.linear.x, twist.angular.z);
@@ -125,9 +125,7 @@ namespace patrol_robot{
 
             sleep(1);
             ElevatorTest();
-            sleep(1);
-            CameraTest("5");
-            sleep(5);
+            sleep(3);
         }
 
         if(!defeat)  

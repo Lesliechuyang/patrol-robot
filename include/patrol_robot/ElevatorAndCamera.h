@@ -10,6 +10,7 @@
 #include<fcntl.h>      /*文件控制定义*/  
 #include<termios.h>    /*PPSIX 终端控制定义*/  
 #include<errno.h>      /*错误号定义*/  
+//#include<delay.h>
 
 #define FALSE  -1  
 #define TRUE   0
@@ -19,7 +20,7 @@
 #define  BAND_RATE       9600
 
 //*********************************************************//
-#define LFIT_TIME     20000 //
+#define LFIT_TIME     20  //20000 //
 #define MAX_LIFT      40
 #define COMMAND_LEN   8
 #define DEAD_LENTH    2
@@ -39,7 +40,7 @@ int  ElevatorGoDown(int ms);//如果ms==0，调用该函数后需要手动调用
 int  ElevatorGoDownStop(void);
 
 
-int  GotoSetPosition(int SetHeight);
+int  GotoSetPosition(int SetHeight); //会调用参数不为0的上升或下降函数
 
 //***********************************************************************//
 typedef enum eCommandType
@@ -51,11 +52,11 @@ typedef enum eCommandType
   e_CommandList
 }enumCommandTypeDef;
 
-#define  COMMAND_ALL_STOP   "curl  \"http://admin:admin@192.168.1.107/cgi-bin/hi3510/ptzctrl.cgi?-step=0&-act=stop\""
-#define  COMMAND_UP_STEP    "curl  \"http://admin:admin@192.168.1.107/cgi-bin/hi3510/ptzctrl.cgi?-step=1&-act=up\""
-#define  COMMAND_DOWN_STEP  "curl  \"http://admin:admin@192.168.1.107/cgi-bin/hi3510/ptzctrl.cgi?-step=1&-act=down\""
-#define  COMMAND_LEFT_STEP  "curl  \"http://admin:admin@192.168.1.107/cgi-bin/hi3510/ptzctrl.cgi?-step=1&-act=left\""
-#define  COMMAND_RIGHT_STEP "curl  \"http://admin:admin@192.168.1.107/cgi-bin/hi3510/ptzctrl.cgi?-step=1&-act=right\""
+#define  COMMAND_ALL_STOP   "curl  \"http://admin:admin@192.168.1.99/cgi-bin/hi3510/ptzctrl.cgi?-step=0&-act=stop\""
+#define  COMMAND_UP_STEP    "curl  \"http://admin:admin@192.168.1.99/cgi-bin/hi3510/ptzctrl.cgi?-step=1&-act=up\""
+#define  COMMAND_DOWN_STEP  "curl  \"http://admin:admin@192.168.1.99/cgi-bin/hi3510/ptzctrl.cgi?-step=1&-act=down\""
+#define  COMMAND_LEFT_STEP  "curl  \"http://admin:admin@192.168.1.99/cgi-bin/hi3510/ptzctrl.cgi?-step=1&-act=left\""
+#define  COMMAND_RIGHT_STEP "curl  \"http://admin:admin@192.168.1.99/cgi-bin/hi3510/ptzctrl.cgi?-step=1&-act=right\""
 
 #define CameraRightStep();   SendCommand( e_Right  );
 #define CameraLeftStep();    SendCommand( e_Left  );
