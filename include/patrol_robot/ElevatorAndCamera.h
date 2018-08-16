@@ -42,7 +42,12 @@ int  ElevatorGoDownStop(void);
 
 int  GotoSetPosition(int SetHeight); //会调用参数不为0的上升或下降函数
 
-//***********************************************************************//
+//*******************************************************************************************************************************************//
+#define  INI_ANGLE_X   10.2
+#define  INI_ANGLE_Y   1.2
+#define  ANGLE_X_STEP  1
+#define  ANGLE_Y_STEP  1
+
 typedef enum eCommandType
 {
   e_Up=0,
@@ -51,6 +56,9 @@ typedef enum eCommandType
   e_Right,
   e_CommandList
 }enumCommandTypeDef;
+
+#define  SET_X_ANGLE(Angle)  SetAngle(0 , Angle)
+#define  SET_Y_ANGLE(Angle)  SetAngle(1 , Angle)
 
 #define  COMMAND_ALL_STOP   "curl  \"http://admin:admin@192.168.1.99/cgi-bin/hi3510/ptzctrl.cgi?-step=0&-act=stop\""
 #define  COMMAND_UP_STEP    "curl  \"http://admin:admin@192.168.1.99/cgi-bin/hi3510/ptzctrl.cgi?-step=1&-act=up\""
@@ -64,7 +72,8 @@ typedef enum eCommandType
 #define CameraDownStep();    SendCommand( e_Down  );
 
 void GoSteps(enumCommandTypeDef eCommand,int times=1);
-
+int SetAngle(char AngleType,float Angle);
+//*******************************************************************************************************************************************//
 
 int ElevatorTest(void);
 int CameraTest(char *argv);

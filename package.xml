@@ -69,4 +69,6 @@
     <!-- Other tools can request additional information be placed here -->
 
   </export>
+<build_export_depend>message_generation</build_export_depend>
+<exec_depend>message_runtime</exec_depend>
 </package>

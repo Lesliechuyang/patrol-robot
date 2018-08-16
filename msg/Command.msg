@@ -1,0 +1,3 @@
+geometry_msgs/Pose goal
+float64 elevator
+geometry_msgs/Vector3 camera

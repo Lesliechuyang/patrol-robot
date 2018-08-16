@@ -1,3 +1,4 @@
 geometry_msgs/PoseArray goals
+geometry_msgs/Vector3 ElevatorAndCamera
 ---
 bool success

@@ -1,6 +1,10 @@
 #include <patrol_robot/ElevatorAndCamera.h>
 
 //#include"ElevatorAndCamera.h"
+//***************************************************************************//
+
+//***************************************************************************//
+
 
 static unsigned char UART_rcv_buf[1024]; 
 int fd; 
@@ -486,8 +490,10 @@ CameraTest(0);
   FlushCOMBuf();
   return 0;
 }
-//***************************************************************************//
+//*********************************************************************************************************************************************************************************//
 char *CommandList[]={COMMAND_UP_STEP,COMMAND_DOWN_STEP,COMMAND_LEFT_STEP,COMMAND_RIGHT_STEP};
+float CurrentAngleX=INI_ANGLE_X;
+float CurrentAngleY=INI_ANGLE_Y;
 
 void SendCommand(enumCommandTypeDef eCommand)
 {
@@ -495,12 +501,75 @@ void SendCommand(enumCommandTypeDef eCommand)
 }
 
 
+
 void GoSteps(enumCommandTypeDef eCommand,int times)
 {
   while(times--){
     system(  CommandList[(unsigned char)eCommand] );
+	switch(eCommand)
+	{
+		case e_Up:   CurrentAngleY+=ANGLE_Y_STEP;break;
+		case e_Down: CurrentAngleY-=ANGLE_Y_STEP;break;
+		case e_Right: CurrentAngleX+=ANGLE_X_STEP;break;
+		case e_Left:CurrentAngleX-=ANGLE_X_STEP;break;
+		default :break;
+	}
   }
+
+  
 }
+
+int SetAngle(char AngleType,float Angle)
+{
+	
+	float Temp=Angle-CurrentAngleX;
+	unsigned short i;
+	if(0==AngleType){  //  X   顺时针为正
+		if(0>Angle  ||  360<Angle){
+			return -1;
+		}
+	
+		if(Temp>180){  
+			i=Temp/ANGLE_X_STEP;
+			GoSteps(e_Left,i );
+			
+		}
+		else if(Temp<-180){
+			i=-Temp/ANGLE_X_STEP;
+			GoSteps(e_Right,i );
+			
+		}
+		else if(Temp>0){
+			i=Temp/ANGLE_X_STEP;
+			GoSteps(e_Right,i );
+			
+		}
+		else if(Temp<0){
+			i=-Temp/ANGLE_X_STEP;
+			GoSteps(e_Left,i );
+			
+		}
+	}
+	else if(1==AngleType){  //  Y   抬头为正
+		if(-90>Angle  ||  90<Angle){
+			return -1;
+		}
+	
+		if(Temp>0){  
+			i=Temp/ANGLE_X_STEP;
+			GoSteps(e_Up,i );
+			
+		}
+		else {
+			i=-Temp/ANGLE_X_STEP;
+			GoSteps(e_Down,i );
+		}
+	
+	}
+	CurrentAngleX=Angle;
+	return 0;
+}
+
 
 int CameraTest(char *argv)
 {

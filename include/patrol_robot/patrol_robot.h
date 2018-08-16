@@ -4,7 +4,7 @@
 #include <patrol_robot/controller.h>
 #include <patrol_robot/trajectory.h>
 #include <ros/ros.h>
-#include <patrol_robot/SendGoals.h>
+#include <patrol_robot/SendCommands.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
@@ -15,7 +15,7 @@ class PatrolRobot{
     public:
         PatrolRobot(tf::TransformListener& tf);
         ~PatrolRobot();
-        bool receiveGoalsService(patrol_robot::SendGoals::Request  &req, patrol_robot::SendGoals::Response &res);
+        bool receiveGoalsService(patrol_robot::SendCommands::Request  &req, patrol_robot::SendCommands::Response &res);
         void odomCB(const nav_msgs::Odometry::ConstPtr &odom);
         geometry_msgs::Pose getCurrentPose();//获取当前位子
     private:

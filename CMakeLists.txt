@@ -39,6 +39,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   geometry_msgs
   nav_msgs
+  std_msgs
   tf
 )
 ##   * add "message_runtime" and every package in MSG_DEP_SET to
@@ -49,16 +50,16 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(FILES
+  Commands.msg
+  Command.msg
+)
 
 ## Generate services in the 'srv' folder
  add_service_files(
    FILES
-   SendGoals.srv
+  SendCommands.srv
+  #SendGoals.srv
 #   Service2.srv
  )
 
@@ -113,6 +114,7 @@ catkin_package(
     nav_msgs
     roscpp
     tf
+    message_runtime
 #  DEPENDS system_lib
 )
 
@@ -265,5 +267,21 @@ add_executable(patrol_robot_client
 )
 add_dependencies(patrol_robot_client ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(patrol_robot_client
+  ${catkin_LIBRARIES}
+)
+
+add_executable(patrol_robot_client_socket
+  src/patrol_robot_client_socket.cpp
+)
+add_dependencies(patrol_robot_client_socket ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(patrol_robot_client_socket
+  ${catkin_LIBRARIES}
+)
+
+add_executable(testqq
+  src/test.cpp
+)
+add_dependencies(testqq ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(testqq
   ${catkin_LIBRARIES}
 )

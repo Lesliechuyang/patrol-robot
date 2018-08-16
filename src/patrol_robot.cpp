@@ -41,13 +41,17 @@ namespace patrol_robot{
         delete controller;
     }
 
-    bool PatrolRobot::receiveGoalsService(patrol_robot::SendGoals::Request  &req,
-         patrol_robot::SendGoals::Response &res){
+    bool PatrolRobot::receiveGoalsService(patrol_robot::SendCommands::Request  &req,
+         patrol_robot::SendCommands::Response &res){
 
-        unsigned int num = req.goals.poses.size();
-        std::vector<geometry_msgs::Pose> goals_nav;
+        unsigned int num = req.commands.commands.size();
+        std::vector<geometry_msgs::Pose> goals_nav;//存放目标点
+        std::vector<float> elevator;//存放升降杆信息
+        std::vector<geometry_msgs::Vector3> camera;//存放相机信息
         for(unsigned int i = 0; i < num; ++i){
-            goals_nav.push_back(req.goals.poses[i]);
+            goals_nav.push_back(req.commands.commands[i].goal);
+            elevator.push_back(req.commands.commands[i].elevator);
+            camera.push_back(req.commands.commands[i].camera);
             ROS_INFO("Receive goals");  
         }
         printf("The number of goals is %d\n", num);
@@ -124,7 +128,17 @@ namespace patrol_robot{
             }
 
             sleep(1);
-            ElevatorTest();
+            GotoSetPosition(elevator[i]); //会调用参数不为0的上升或下降函数
+            sleep(1);
+            SetAngle(0, camera[i].x);//左右
+            sleep(1);
+            SetAngle(1, camera[i].y);//上下
+            sleep(1);
+            SetAngle(0, 0);//左右
+            sleep(1);
+            SetAngle(1, 0);//上下
+            sleep(1);
+            GotoSetPosition(0); //会调用参数不为0的上升或下降函数
             sleep(3);
         }
 
